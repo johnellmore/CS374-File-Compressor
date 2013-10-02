@@ -1,6 +1,7 @@
 #include "fileobjects.h"
 
 using namespace std;
+namespace fs = boost::filesystem;
 
 Archive::Archive(const string archive, const string output)
   : archiveHandle(archive),

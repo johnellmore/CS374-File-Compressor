@@ -2,6 +2,7 @@
 #include <iostream>
 #include <list>
 #include <memory>
+#include <boost/filesystem>
 
 class Object;
 class File;
