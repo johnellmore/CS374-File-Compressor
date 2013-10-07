@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cassert>
 #include <fstream>
+#include <map>
+#include <vector>
 using namespace std;
 
 bool isSame(string input, string output){
@@ -29,6 +31,22 @@ bool isSame(string input, string output){
 	return true;
 }
 
+map<unsigned int, vector<char> > initializeDictionary(){
+	map<unsigned int, vector<char> > dictionary;
+	vector<char> append;
+	for(unsigned int i = 0; i < 256; i++){
+		append.push_back((char)i);
+		pair<unsigned int, vector<char> > temp = make_pair<unsigned int, vector<char> >(i, append);
+		dictionary.insert(temp);
+		append = dictionary[i];
+		append.clear();
+	}
+	for(unsigned int i = 0; i < 256; i++){
+		assert(dictionary.at(i).at(0) == (char) i);
+	}
+	return dictionary;
+}
+
 char* compress(char* buffer){
 	return buffer;
 }
@@ -38,6 +56,8 @@ char* decompress(char* buffer){
 }
 
 void cycle(string input, string output, string mode){
+	map<unsigned int, vector<char> >  dictionary = initializeDictionary();
+	
 	char* buffer;
 	int size = 1;
 	fstream inputFile;
