@@ -1,0 +1,12 @@
+On January 15, 1990, half of AT&T's long distance network went down for a total of 9 hours. The problem was due to a software update that aimed to reduce the downtime caused by a system crash (enabling a faster reboot). Normally, when a switch recovered from a crash, it would send out a message to its neighbors alerting them, and then the neighbors would verify that the original switch was indeed back up. With the new update, the switch would send out a notification of recovery, but then just go ahead and start accepting calls and performing routing requests, thus bypassing the whole status verification normally required at the end of a boot.
+
+The problem started like this: a switch (switch #1) crashed due to some unknown reason, and it sent out a crash notice to its neighboring switches, then rebooted and sent out a recovery notification. But a neighboring switch (switch #2) was still in the process of classifying switch #1 as down. When switch #2 got the recovery notification, it triggered an error in the software which caused it to crash, and it sent out its crash and recovery notifications.
+
+These then hit its neighboring switches, causing them to crash as well. The problem continued to cause a chain-reaction which brought down a good portion of the long-distance network. At the height of the problem, each switch was resetting every 6-8 seconds.
+
+AT&T solved the problem by reducing the amount of calls on the network and allowing the switches to naturally reset themselves. The switches then stabilized to a working condition, and the network came back up. Once the network was back up, AT&T began to rollback the switches' firmware to the previous stable version. After a few weeks of code-tracing and analysis, AT&T was able to pinpoint the problem and properly fix it.
+
+Totally un-scholarly sources:
+http://www.wired.com/software/coolapps/news/2005/11/69355?currentPage=all
+http://everything2.com/title/AT%2526T+Crash+of+1990
+http://www.phworld.org/history/attcrash.htm
