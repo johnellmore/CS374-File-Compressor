@@ -5,5 +5,5 @@ Usage
 -----
 
 ```
-compressor [-e] INPUT_FILE [-a ALGORITHM] [-o OUTPUT_FILE]
+squash [-e] [-a ALGORITHM] [-o OUTPUT_FILE] INPUT_FILE [INPUT_FILE ...]
 ```
