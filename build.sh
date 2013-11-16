@@ -1,1 +1,1 @@
-g++ -std=c++11 -o squash -lboost_filesystem fileobjects.cpp squash.cpp
+g++ -std=c++11 -o squash fileactions.cpp compress.cpp squash.cpp
