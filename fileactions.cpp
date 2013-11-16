@@ -27,7 +27,11 @@ void compressIntoArchive(list<string> inputFiles, string outputFile, unsigned in
 	}
 
 	// DO COMPRESSION
-	if (algorithm == 2) {
+	stringstream compressed;
+	if (algorithm == 1) {
+		// do no compression
+		compressed << archive.rdbuf();
+	} else if (algorithm == 2) {
 		// do base64 encoding
 	} else if (algorithm == 3) {
 		// do LZW compression
@@ -39,7 +43,7 @@ void compressIntoArchive(list<string> inputFiles, string outputFile, unsigned in
 		throw runtime_error(std::string("Could not create output file \"") + outputFile + "\".");
 
 	file << algorithm << " "; // write the algorithm used to the beginning of the file
-	file << archive.str();
+	file << compressed.rdbuf();
 
 	file.close();
 }
@@ -71,60 +75,6 @@ void expandFromArchive(string inputFile) {
 	archive >> numObjects;
 	for (int i = 0; i < numObjects; i++)
 		makeObjectFromArchive(archive);
-}
-
-void makeObjectFromArchive(stringstream &archive) {
-
-	// get length of filename
-	int handleLength;
-	archive >> handleLength;
-	archive.ignore();
-
-	// get filename
-	string filename;
-	filename = extractString(archive, handleLength);
-
-	// get type
-	string type;
-	archive >> type;
-
-	cerr << "HANDLING: [" << filename << "] (type " << type << ")" << endl; // debug
-
-	if (type == "dir") {
-		// HANDLING A DIRECTORY
-
-		// create the directory
-		if (mkdir(filename.c_str(), 0777) != 0)
-			throw runtime_error(std::string("Error creating directory: \"") + filename + "\".");
-
-		// get number of directory entries
-		int numObjects;
-		archive >> numObjects;
-
-		// process each directory entry
-		for (int i = 0; i < numObjects; i++)
-			makeObjectFromArchive(archive);
-
-	} else if (type == "file") {
-		// HANDLING A FILE
-
-		// get the length of the content block
-		int contentLength;
-		archive >> contentLength;
-		archive.ignore();
-
-		// create the file
-		ofstream file(filename.c_str(), ofstream::trunc);
-		if (!file.is_open())
-			throw runtime_error(std::string("Could not recreate file \"") + filename + "\".");
-
-		// write the contents to the file
-		string contents = extractString(archive, contentLength);
-		file.write(contents.c_str(), contents.size());
-		file.close();
-
-	} else 
-		throw runtime_error(std::string("Unknown object type: \"") + filename + "\".");
 }
 
 void addObjectToArchive(string handle, stringstream &archive, int stripPrefix) {
@@ -195,4 +145,56 @@ void addObjectToArchive(string handle, stringstream &archive, int stripPrefix) {
 
 	} else // IS UNKNOWN OBJECT TYPE
 		throw runtime_error(std::string("File entry \"") + handle + "\" is of unknown type.");
+}
+
+void makeObjectFromArchive(stringstream &archive) {
+
+	// get length of filename
+	int handleLength;
+	archive >> handleLength;
+	archive.ignore();
+
+	// get filename
+	string filename;
+	filename = extractString(archive, handleLength);
+
+	// get type
+	string type;
+	archive >> type;
+
+	if (type == "dir") {
+		// HANDLING A DIRECTORY
+
+		// create the directory
+		if (mkdir(filename.c_str(), 0777) != 0)
+			throw runtime_error(std::string("Error creating directory: \"") + filename + "\".");
+
+		// get number of directory entries
+		int numObjects;
+		archive >> numObjects;
+
+		// process each directory entry
+		for (int i = 0; i < numObjects; i++)
+			makeObjectFromArchive(archive);
+
+	} else if (type == "file") {
+		// HANDLING A FILE
+
+		// get the length of the content block
+		int contentLength;
+		archive >> contentLength;
+		archive.ignore();
+
+		// create the file
+		ofstream file(filename.c_str(), ofstream::trunc);
+		if (!file.is_open())
+			throw runtime_error(std::string("Could not recreate file \"") + filename + "\".");
+
+		// write the contents to the file
+		string contents = extractString(archive, contentLength);
+		file.write(contents.c_str(), contents.size());
+		file.close();
+
+	} else 
+		throw runtime_error(std::string("Unknown object type: \"") + filename + "\".");
 }
