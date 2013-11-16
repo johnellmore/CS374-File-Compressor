@@ -1,0 +1,1 @@
+g++ -std=c++11 -o compresstest compress.cpp compresstest.cpp
