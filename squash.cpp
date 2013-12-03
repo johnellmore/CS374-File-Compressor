@@ -7,7 +7,7 @@ int main(int argc, char *argv[]) {
 	// require at least one argument
 	if (argc < 2) {
 		cerr << "Too few arguments." << endl;
-		cerr << "For usage, please run:\n\tcompressor --help" << endl;
+		cerr << "For usage, please see README.md" << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -28,13 +28,11 @@ int main(int argc, char *argv[]) {
 			arg.assign(argv[++a]);
 			if (arg == "none")
 				algorithm = 1;
-			else if (arg == "base64")
-				algorithm = 2;
 			else if (arg == "lzw")
-				algorithm = 3;
+				algorithm = 2;
 			else {
 				cerr << "Invalid algorithm: " << arg << endl;
-				cerr << "For usage, please run:\n\tcompressor --help" << endl;
+				cerr << "For usage, please see README.md" << endl;
 				return EXIT_FAILURE;
 			}
 		} else if (arg == "-o") {
@@ -52,11 +50,11 @@ int main(int argc, char *argv[]) {
 	// validate the number of input files
 	if (action == 2 && inputFiles.size() != 1) {
 		cerr << "Expanding requires exactly one input file." << endl;
-		cerr << "For usage, please run:\n\tcompressor --help" << endl;
+		cerr << "For usage, please see README.md" << endl;
 		return EXIT_FAILURE;
 	} else if (action == 1 && inputFiles.size() < 1) {
 		cerr << "Compression requires at least one input file." << endl;
-		cerr << "For usage, please run:\n\tcompressor --help" << endl;
+		cerr << "For usage, please see README.md" << endl;
 		return EXIT_FAILURE;
 	}
 
