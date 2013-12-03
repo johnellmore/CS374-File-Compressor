@@ -33,8 +33,6 @@ void compressIntoArchive(list<string> inputFiles, string outputFile, unsigned in
 		// do no compression
 		compressed << archive.rdbuf();
 	} else if (algorithm == 2) {
-		// do base64 encoding
-	} else if (algorithm == 3) {
 		// do LZW compression
 		LZW compressor;
 		compressor.compress(archive, compressed);
@@ -68,8 +66,6 @@ void expandFromArchive(string inputFile) {
 		// no compression method, just concatenation
 		archive << file.rdbuf();
 	} else if (algorithm[0] == '2') {
-		// do base64 decoding
-	} else if (algorithm[0] == '3') {
 		// do LZW decompression
 		LZW decompressor;
 		stringstream full;
