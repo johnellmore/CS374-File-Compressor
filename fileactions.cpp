@@ -1,4 +1,5 @@
 #include "fileactions.h"
+#include "compress.h"
 
 using namespace std;
 
@@ -35,6 +36,8 @@ void compressIntoArchive(list<string> inputFiles, string outputFile, unsigned in
 		// do base64 encoding
 	} else if (algorithm == 3) {
 		// do LZW compression
+		LZW compressor;
+		compressor.compress(archive, compressed);
 	}
 
 	// write file to disk
@@ -50,13 +53,14 @@ void compressIntoArchive(list<string> inputFiles, string outputFile, unsigned in
 
 void expandFromArchive(string inputFile) {
 	// open the archive file
-	ifstream file(inputFile.c_str(), ifstream::binary);
+	ifstream file(inputFile.c_str());
 	if (!file.is_open())
 		throw runtime_error(std::string("Could not open input file \"") + inputFile + "\".");
 
 	// get the algorithm used
 	char algorithm[] = "xx";
 	file.get(algorithm, 2);
+	file.ignore();
 
 	// DECOMPRESS
 	stringstream archive;
@@ -67,6 +71,12 @@ void expandFromArchive(string inputFile) {
 		// do base64 decoding
 	} else if (algorithm[0] == '3') {
 		// do LZW decompression
+		LZW decompressor;
+		stringstream full;
+		full << file.rdbuf();
+		//cout << full.str();
+		//return;
+		decompressor.decompress(full, archive);
 	}
 	file.close();
 
@@ -161,6 +171,8 @@ void makeObjectFromArchive(stringstream &archive) {
 	// get type
 	string type;
 	archive >> type;
+
+	cerr << "HANDLING: " << filename << " of type " << type << endl;
 
 	if (type == "dir") {
 		// HANDLING A DIRECTORY

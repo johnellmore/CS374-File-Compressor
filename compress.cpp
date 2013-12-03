@@ -20,11 +20,6 @@ void BitWriter::write(unsigned int data, int length) {
 	}
 }
 
-void BitWriter::writeDebug(unsigned int data, int length) {
-	(*output) << data << " ";
-	length;
-}
-
 void BitWriter::close() {
 	if (!bitLength) return;
 	unsigned char lastByte = buffer >> (3*CHAR_BIT);
@@ -35,7 +30,6 @@ void BitWriter::close() {
 /* BITREADER */
 
 unsigned int BitReader::read(int length) {
-	//cout << hex << buffer << " " << bufferLength << endl;
 	// read enough into the buffer
 	while (bufferLength < length) {
 		// read in the next byte
@@ -44,22 +38,15 @@ unsigned int BitReader::read(int length) {
 		toShift = toShift >> bufferLength;
 
 		// merge the with buffer
-		//cout << hex << buffer << " " << toShift << " ";
 		buffer = buffer | toShift;
-		//cout << hex << buffer << " ";
 		bufferLength += CHAR_BIT;
 	}
-	//cout << endl;
 
 	// get needed value
-
 	unsigned int result = buffer >> (4*CHAR_BIT-length);
-	//cout << "[" << result << "] " << endl;
 	// erase value from buffer
-	//cout << buffer << " ";
 	buffer = buffer << length;
 	bufferLength -= length;
-	//cout << buffer << endl;
 
 	return result;
 }
@@ -97,6 +84,7 @@ void Trie::insert(list<char> key, int value) {
 }
 
 int Trie::longestPrefixOf(istream &buffer, list<char> &prefix) {
+
 	// if we've hit the end of the buffer, this is the best node
 	if (buffer.eof()) return value;
 
@@ -119,19 +107,28 @@ int Trie::longestPrefixOf(istream &buffer, list<char> &prefix) {
 
 /* LZW CLASS */
 
+LZW::LZW(unsigned int bitWidth)
+:nextVal(0), maxBitWidth(bitWidth) {
+	maxValue = 1;
+	while (bitWidth--) maxValue*2;
+	maxValue -= 1;
+};
+
 int LZW::nextValue() {
 	if (nextVal > maxValue) return -1;
 	return nextVal++;
 }
 
 int LZW::codeLength() const {
-	int length = 1;
-	unsigned int val = nextVal - 1;
+	unsigned int length = 1;
+	unsigned int val = nextVal + (int)!compressing; // decompressing jumps ahead 
 	while (val >>= 1) length++;
-	return length;
+	return min(length, maxBitWidth);
 }
 
 void LZW::compress(istream &input, ostream &output) {
+	compressing = true;
+
 	// init structures
 	BitWriter out(&output);
 	Trie dict;
@@ -154,12 +151,17 @@ void LZW::compress(istream &input, ostream &output) {
 		// write this value to the output
 		out.write(value, codeLength());
 
-		// add this prefix (plus the following char) to the dictionary
+		// check for the end of the stream
 		char nextChar = (char)input.peek();
 		if (nextChar == EOF) break;
-		list<char> nextPattern(prefix);
-		nextPattern.push_back(nextChar);
-		dict.insert(nextPattern, nextValue());
+
+		// if there's room, add prefix plus following char to the dictionary
+		int next = nextValue();
+		if (next != -1) {
+			list<char> nextPattern(prefix);
+			nextPattern.push_back(nextChar);
+			dict.insert(nextPattern, next);
+		}
 	}
 
 	// finish out with the close word
@@ -168,6 +170,8 @@ void LZW::compress(istream &input, ostream &output) {
 }
 
 void LZW::decompress(istream &input, ostream &output) {
+	compressing = false;
+
 	// init structures
 	BitReader in(&input);
 	vector<vector<char>> dict;
@@ -180,40 +184,40 @@ void LZW::decompress(istream &input, ostream &output) {
 	}
 	int closeWord = nextValue(); // this word will signify the end of the stream
 
-	// iterate through each value
+	// start combing through codewords
 	int value;
-	int lastValue = -1;
-	while ((value = in.read(codeLength())) != closeWord) {
+	int lastValue = in.read(codeLength());
+	vector<char> thisToken = dict[lastValue];
+	while (true) {
+		// write the corresponding string to the stream
+		output.write(&thisToken[0], thisToken.size());
 
-		// if we haven't added the value to the dictionary yet, it's invalid
-		if (value > currentValue())
-			throw runtime_error(string("Cannot decompress; input is corrupted."));
-		
-		// write the token to the file
-		vector<char> thisToken;
-		if (value == currentValue()+1) {
-			// this is the special tricky case
-			thisToken = dict[lastValue];
-			thisToken.push_back(thisToken[0]);
-			output.write(&thisToken[0], thisToken.size());
+		// read the next value, handle closeword
+		value = in.read(codeLength());
+		if (value == closeWord) break;
 
-			// save the tricky entry
-			dict[nextValue()] = thisToken;
-
-		} else {
-			// this is a normal case
-			thisToken = dict[value];
-			output.write(&thisToken[0], thisToken.size());
-
-			// add the appropriate entry to the dictionary
-			if (lastValue != -1) {
-				vector<char> toAdd = dict[lastValue];
+		// add the new dictionary entry
+		int next = nextValue();
+		if (next != -1) {
+			vector<char> toAdd;
+			if (value == currentValue()+1) {
+				// this is the tricky case
+				toAdd = dict[lastValue];
+				toAdd.push_back(toAdd[0]);
+				dict[next] = toAdd;
+			} else {
+				// normal handling
+				thisToken = dict[value];
+				toAdd = dict[lastValue];
 				toAdd.push_back(thisToken[0]);
-				dict[nextValue()] = toAdd;
+				dict[next] = toAdd;
 			}
-			
 		}
-
 		lastValue = value;
+		if (lastValue > currentValue())
+			throw runtime_error(string("Cannot decompress input; uses non-standard dictionary."));
+
+		thisToken = dict[lastValue];
 	}
+
 }

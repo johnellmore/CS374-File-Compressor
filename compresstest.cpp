@@ -12,9 +12,9 @@ int main() {
 	compressor.compress(cin, intermediate);
 	
 	// dump intermediate data
-	//cerr << intermediate.str() << endl;
+	cout << intermediate.str() << endl;
 
 	// decompress the data
-	decompressor.decompress(intermediate, cout);
-	cout << endl;
+	decompressor.decompress(intermediate, cerr);
+	//cout << endl;
 }

@@ -6,7 +6,7 @@
 #include <utility>
 #include <stdexcept>
 #include <climits>
-
+#include <algorithm>
 
 
 class BitWriter {
@@ -17,7 +17,6 @@ class BitWriter {
 public:
 	BitWriter(std::ostream* s) : buffer(0), bitLength(0), output(s) {};
 	void write(unsigned int data, int length);
-	void writeDebug(unsigned int data, int length);
 	void close();
 };
 
@@ -25,10 +24,12 @@ class BitReader {
 	unsigned int buffer;
 	int bufferLength;
 	std::istream* input;
+	bool error;
 
 public:
-	BitReader(std::istream* s) : buffer(0), bufferLength(0), input(s) {};
+	BitReader(std::istream* s) : buffer(0), bufferLength(0), input(s), error(false) {};
 	unsigned int read(int length);
+	bool okay() { return !error; }
 };
 
 class Trie {
@@ -48,11 +49,14 @@ public:
 class LZW {
 	unsigned int nextVal;
 	unsigned int maxValue;
+	unsigned int maxBitWidth;
+	bool compressing;
 
 public:
-	LZW() : nextVal(0), maxValue(4095) {};
+	LZW() : nextVal(0), maxValue(4095), maxBitWidth(12) {};
+	LZW(unsigned int bitWidth);
 	int nextValue();
-	int currentValue() const { return maxValue-1; };
+	int currentValue() const { return nextVal-1; };
 	int codeLength() const;
 	void compress(std::istream &input, std::ostream &output);
 	void decompress(std::istream &input, std::ostream &output);

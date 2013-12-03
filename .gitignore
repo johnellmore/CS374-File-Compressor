@@ -13,3 +13,8 @@
 *.a
 
 *.out
+
+# compiled executables
+squash
+compresstest
+.DS_Store
