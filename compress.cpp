@@ -152,10 +152,14 @@ void LZW::compress(istream &input, ostream &output) {
 		out.write(value, codeLength());
 
 		// check for the end of the stream
-		char nextChar = (char)input.peek();
-		if (nextChar == EOF) break;
+		unsigned int currentPos = input.tellg();
+		input.seekg(0, ios_base::end);
+		unsigned int endPos = input.tellg();
+		input.seekg(currentPos, ios_base::beg);
+		if (currentPos >= (endPos-1)) break;
 
 		// if there's room, add prefix plus following char to the dictionary
+		char nextChar = input.peek();
 		int next = nextValue();
 		if (next != -1) {
 			list<char> nextPattern(prefix);

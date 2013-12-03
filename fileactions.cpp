@@ -74,7 +74,6 @@ void expandFromArchive(string inputFile) {
 		LZW decompressor;
 		stringstream full;
 		full << file.rdbuf();
-		//cout << full.str();
 		//return;
 		decompressor.decompress(full, archive);
 	}
@@ -171,8 +170,6 @@ void makeObjectFromArchive(stringstream &archive) {
 	// get type
 	string type;
 	archive >> type;
-
-	cerr << "HANDLING: " << filename << " of type " << type << endl;
 
 	if (type == "dir") {
 		// HANDLING A DIRECTORY

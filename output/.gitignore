@@ -1,0 +1,8 @@
+# ignore everything in this directory
+*.cmp
+*.txt
+*.gif
+*.png
+tests/*
+images/*
+text/*
