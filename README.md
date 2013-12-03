@@ -1,6 +1,8 @@
 SECompressor
 ============
 
+*Note: see assignments/SEProjectReport.pdf for my full project report.*
+
 The squash program can tarball or compress files or directories into a single file. LZW compression is the only supported compression algorithm, and yields about a 50% size reduction on most natural language texts.
 
 Usage
